@@ -70,10 +70,6 @@ class NeopixelPi5(Generic, EasyResource):
         if hasattr(config, "attributes") and config.attributes:
             self.num_pixels = config.attributes.get("num_pixels", 64)
 
-        # Initialize Pi5Neo if available
-        self.logger.warning("Initializing Pi5Neo test 1")
-        self.logger.warn("Initializing Pi5Neo test 2")
-        self.logger.warning(f"Pi5Neo: {Pi5Neo}")
         if Pi5Neo is not None:
             try:
                 self.pixels = Pi5Neo("/dev/spidev0.0", self.num_pixels, 800)

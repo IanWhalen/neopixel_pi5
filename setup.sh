@@ -33,9 +33,14 @@ fi
 # -qq suppresses extraneous output from pip
 echo "Virtualenv found/created. Installing/upgrading Python packages..."
 if ! [ -f .installed ]; then
-    if ! $PYTHON -m pip install -r requirements.txt -Uqq; then
+    echo "Installing packages from requirements.txt..."
+    echo "Platform: $(uname -a)"
+    echo "Python version: $($PYTHON --version)"
+    if ! $PYTHON -m pip install -r requirements.txt -U; then
+        echo "ERROR: pip install failed"
         exit 1
     else
+        echo "Package installation successful"
         touch .installed
     fi
 fi
