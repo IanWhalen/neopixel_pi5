@@ -1,5 +1,4 @@
 version = 1
-revision = 1
 requires-python = ">=3.12"
 
 [[package]]
@@ -135,11 +134,27 @@ name = "neopixel-pi5"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "pi5neo", marker = "sys_platform == 'linux'" },
     { name = "viam-sdk" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "viam-sdk", specifier = ">=0.55.1" }]
+requires-dist = [
+    { name = "pi5neo", marker = "sys_platform == 'linux'" },
+    { name = "viam-sdk", specifier = ">=0.55.1" },
+]
+
+[[package]]
+name = "pi5neo"
+version = "1.0.6"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "spidev" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/6e/8d/85e00e3d4fbbab7f224c92baceb1ab6f76802c0409d7ffd5c46f2f87b453/pi5neo-1.0.6.tar.gz", hash = "sha256:f830ca5a7592849cfad3bb80a248c8e27ac489eef5329a4fd9e48a2ba39726dd", size = 9493 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d4/e0/97bd4775d341d98ac61bdb19527c02ca8ad154ddf4b14ad1e86f2c3698a7/pi5neo-1.0.6-py3-none-any.whl", hash = "sha256:30821b28567142333925429f2da3ed8d394c2a986dfdb9007f700f08ac0dd888", size = 6296 },
+]
 
 [[package]]
 name = "protobuf"
@@ -195,6 +210,12 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/9d/97/c9bf6dcd647a8cf7abbad5814dfb7d8a16e6ab92a3e56343b3bcb454a6d3/pymongo-4.15.1-cp313-cp313t-win_amd64.whl", hash = "sha256:8d62e68ad21661e536555d0683087a14bf5c74b242a4446c602d16080eb9e293", size = 1017521 },
     { url = "https://files.pythonhosted.org/packages/31/ea/102f7c9477302fa05e5303dd504781ac82400e01aab91bfba9c290253bd6/pymongo-4.15.1-cp313-cp313t-win_arm64.whl", hash = "sha256:56bbfb79b51e95f4b1324a5a7665f3629f4d27c18e2002cfaa60c907cc5369d9", size = 992963 },
 ]
+
+[[package]]
+name = "spidev"
+version = "3.8"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/67/87/039b6eeea781598015b538691bc174cc0bf77df9d4d2d3b8bf9245c0de8c/spidev-3.8.tar.gz", hash = "sha256:2bc02fb8c6312d519ebf1f4331067427c0921d3f77b8bcaf05189a2e8b8382c0", size = 13893 }
 
 [[package]]
 name = "typing-extensions"

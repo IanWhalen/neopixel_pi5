@@ -1,8 +1,7 @@
-from typing import (Any, ClassVar, Dict, Final, List, Mapping, Optional,
-                    Sequence, Tuple)
+from typing import Any, ClassVar, Dict, Mapping, Optional, Sequence, Tuple
 
 from typing_extensions import Self
-from viam.components.generic import *
+from viam.components.generic import Generic
 from viam.proto.app.robot import ComponentConfig
 from viam.proto.common import Geometry, ResourceName
 from viam.resource.base import ResourceBase
@@ -67,7 +66,7 @@ class NeopixelPi5(Generic, EasyResource):
         command: Mapping[str, ValueTypes],
         *,
         timeout: Optional[float] = None,
-        **kwargs
+        **kwargs,
     ) -> Mapping[str, ValueTypes]:
         self.logger.error("`do_command` is not implemented")
         raise NotImplementedError()
@@ -77,4 +76,3 @@ class NeopixelPi5(Generic, EasyResource):
     ) -> Sequence[Geometry]:
         self.logger.error("`get_geometries` is not implemented")
         raise NotImplementedError()
-
