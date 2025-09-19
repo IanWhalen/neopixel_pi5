@@ -3,12 +3,6 @@ import asyncio
 from viam.module.module import Module
 
 try:
-    from Pi5Neo import Pi5Neo
-except ImportError:
-    # Pi5Neo requires Linux SPI interface, not available on macOS
-    Pi5Neo = None
-
-try:
     from models.neopixel_pi5 import NeopixelPi5  # noqa: F401
 except ModuleNotFoundError:
     # when running as local module with run.sh

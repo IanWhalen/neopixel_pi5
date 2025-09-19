@@ -1,6 +1,9 @@
 #!/bin/sh
 cd `dirname $0`
 
+sudo apt-get update
+sudo apt-get install -y python3.11-dev
+
 # Create a virtual environment to run our code
 VENV_NAME="venv"
 PYTHON="$VENV_NAME/bin/python"

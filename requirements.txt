@@ -1,5 +1,5 @@
 
 viam-sdk==0.55.1
-pi5neo; sys_platform == "linux"
+Pi5Neo==1.0.6
 
 typing-extensions
