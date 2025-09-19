@@ -1,0 +1,13 @@
+{
+  "module_name": "neopixel_pi5",
+  "namespace": "ianwhalen",
+  "language": "python",
+  "resource_type": "component",
+  "resource_subtype": "generic",
+  "model_name": "neopixel_pi5",
+  "enable_cloud_build": true,
+  "initialize_git": false,
+  "generator_version": "0.1.0",
+  "generated_on": "2025-09-19T13:47:48.835793Z",
+  "module_readme_link": "README.md"
+}
