@@ -1,7 +1,24 @@
 import asyncio
 from typing import Any, ClassVar, Dict, Mapping, Optional, Sequence, Tuple
 
-from Pi5Neo import Pi5Neo  # type: ignore # noqa: F401
+try:
+    from pi5neo import Pi5Neo  # type: ignore # noqa: F401
+except ImportError as e:
+    print(f"IMPORT ERROR: Failed to import pi5neo: {e}")
+    import sys
+
+    print(f"Python path: {sys.path}")
+    print("Installed packages:")
+    import subprocess
+
+    try:
+        result = subprocess.run(
+            [sys.executable, "-m", "pip", "list"], capture_output=True, text=True
+        )
+        print(result.stdout)
+    except Exception as pip_error:
+        print(f"Failed to run pip list: {pip_error}")
+    raise
 from typing_extensions import Self
 from viam.components.generic import Generic
 from viam.proto.app.robot import ComponentConfig
