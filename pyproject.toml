@@ -7,5 +7,5 @@ requires-python = ">=3.12"
 dependencies = [
     "viam-sdk>=0.55.1",
     "pi5neo; sys_platform == 'linux'",
-    "pydantic>=2.11.9",
+    "pydantic==2.11.9",
 ]

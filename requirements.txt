@@ -1,5 +1,6 @@
 
 viam-sdk==0.55.1
 Pi5Neo==1.0.6
+pydantic==2.11.9
 
 typing-extensions
