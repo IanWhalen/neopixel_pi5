@@ -96,11 +96,7 @@ class NeopixelPi5(Generic, EasyResource):
         if self.led_controller is None:
             raise RuntimeError("LED controller not initialized")
 
-        # Handle legacy "do" command for backward compatibility
-        if "do" in command:
-            return await self.led_controller.cycle_colors()
-
-        # Handle new generic commands
+        # Handle commands
         if "action" not in command:
             raise ValueError("Command must include 'action' field")
 
