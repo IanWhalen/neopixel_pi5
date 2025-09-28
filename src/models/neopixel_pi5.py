@@ -1,24 +1,5 @@
-import asyncio
 from typing import Any, ClassVar, Dict, Mapping, Optional, Sequence, Tuple
 
-try:
-    from pi5neo import Pi5Neo  # type: ignore # noqa: F401
-except ImportError as e:
-    print(f"IMPORT ERROR: Failed to import pi5neo: {e}")
-    import sys
-
-    print(f"Python path: {sys.path}")
-    print("Installed packages:")
-    import subprocess
-
-    try:
-        result = subprocess.run(
-            [sys.executable, "-m", "pip", "list"], capture_output=True, text=True
-        )
-        print(result.stdout)
-    except Exception as pip_error:
-        print(f"Failed to run pip list: {pip_error}")
-    raise
 from typing_extensions import Self
 from viam.components.generic import Generic
 from viam.proto.app.robot import ComponentConfig
@@ -27,6 +8,9 @@ from viam.resource.base import ResourceBase
 from viam.resource.easy_resource import EasyResource
 from viam.resource.types import Model, ModelFamily
 from viam.utils import ValueTypes
+
+from led_controller import LEDController
+from pixel_models import Pixel, PixelStrip
 
 
 class NeopixelPi5(Generic, EasyResource):
@@ -38,7 +22,7 @@ class NeopixelPi5(Generic, EasyResource):
 
     def __init__(self, name: str):
         super().__init__(name)
-        self.pixels = None
+        self.led_controller = None
         self.num_pixels = 64  # Default number of pixels
 
     @classmethod
@@ -87,15 +71,16 @@ class NeopixelPi5(Generic, EasyResource):
         if hasattr(config, "attributes") and config.attributes:
             self.num_pixels = config.attributes.get("num_pixels", 64)
 
-        if Pi5Neo is not None:
-            try:
-                self.pixels = Pi5Neo("/dev/spidev0.0", self.num_pixels, 800)
-                self.logger.warning(f"Pixels value: {self.pixels}")
-            except Exception as e:
-                self.logger.warning(f"Failed to initialize Pi5Neo: {e}")
-                self.pixels = None
-
-        self.logger.warning("got here after Pi5Neo initialization")
+        try:
+            self.led_controller = LEDController(
+                spi_device="/dev/spidev0.0", num_pixels=self.num_pixels, frequency=800
+            )
+            self.logger.info(
+                f"LED controller initialized with {self.num_pixels} pixels"
+            )
+        except Exception as e:
+            self.logger.error(f"Failed to initialize LED controller: {e}")
+            raise
 
         return super().reconfigure(config, dependencies)
 
@@ -106,77 +91,88 @@ class NeopixelPi5(Generic, EasyResource):
         timeout: Optional[float] = None,
         **kwargs,
     ) -> Mapping[str, ValueTypes]:
-        if "do" in command:
-            return await self._cycle_lights()
-        else:
-            self.logger.error(f"Unknown command: {command}")
-            raise NotImplementedError(f"Command {command} is not implemented")
+        self.logger.info(f"Received command: {command}")
 
-    async def _cycle_lights(self) -> Mapping[str, ValueTypes]:
-        """Cycle through all lights with different colors"""
-        if self.pixels is None:
-            self.logger.warning("Pi5Neo not available, simulating light cycle")
-            # Simulate the cycling for testing on non-Pi5 systems
-            colors = [
-                (255, 0, 0),
-                (0, 255, 0),
-                (0, 0, 255),
-                (255, 255, 0),
-                (255, 0, 255),
-                (0, 255, 255),
-            ]
-            for i, color in enumerate(colors):
-                self.logger.info(
-                    f"Simulating: Setting all {self.num_pixels} pixels to color {color}"
-                )
-                await asyncio.sleep(0.5)
-            return {
-                "status": "completed",
-                "message": f"Simulated cycling {len(colors)} colors on {self.num_pixels} pixels",
-            }
+        if self.led_controller is None:
+            raise RuntimeError("LED controller not initialized")
+
+        # Handle legacy "do" command for backward compatibility
+        if "do" in command:
+            return await self.led_controller.cycle_colors()
+
+        # Handle new generic commands
+        if "action" not in command:
+            raise ValueError("Command must include 'action' field")
+
+        action = command["action"]
 
         try:
-            # Define a sequence of colors to cycle through
-            colors = [
-                (255, 0, 0),  # Red
-                (0, 255, 0),  # Green
-                (0, 0, 255),  # Blue
-                (255, 255, 0),  # Yellow
-                (255, 0, 255),  # Magenta
-                (0, 255, 255),  # Cyan
-                (255, 128, 0),  # Orange
-                (128, 0, 255),  # Purple
-            ]
+            if action == "set_pixel":
+                pixel_index = command.get("pixel", 0)
+                red = command.get("red", 0)
+                green = command.get("green", 0)
+                blue = command.get("blue", 0)
+                pixel = Pixel(red=red, green=green, blue=blue)
+                await self.led_controller.set_pixel(pixel_index, pixel)
+                return {
+                    "status": "completed",
+                    "message": f"Set pixel {pixel_index} to RGB({red}, {green}, {blue})",
+                }
 
-            # Cycle through each color
-            for color in colors:
-                # Set all pixels to the current color
-                for i in range(self.num_pixels):
-                    self.pixels.set_pixel(i, color[0], color[1], color[2])
+            elif action == "set_all":
+                red = command.get("red", 0)
+                green = command.get("green", 0)
+                blue = command.get("blue", 0)
+                pixel = Pixel(red=red, green=green, blue=blue)
+                await self.led_controller.set_all(pixel)
+                return {
+                    "status": "completed",
+                    "message": f"Set all pixels to RGB({red}, {green}, {blue})",
+                }
 
-                # Update the strip
-                self.pixels.update_strip()
+            elif action == "set_pixels":
+                pixel_data = command.get("pixels", [])
+                start_index = command.get("start", 0)
+                if not pixel_data:
+                    raise ValueError(
+                        "pixels parameter is required for set_pixels action"
+                    )
+                pixel_strip = PixelStrip.from_lists(pixel_data, start_index)
+                await self.led_controller.set_pixels(pixel_strip)
+                return {
+                    "status": "completed",
+                    "message": f"Set {len(pixel_data)} pixels starting at index {start_index}",
+                }
 
-                # Wait before next color
-                await asyncio.sleep(0.5)
+            elif action == "set_matrix":
+                pixel_matrix = command.get("matrix", [])
+                if not pixel_matrix:
+                    raise ValueError(
+                        "matrix parameter is required for set_matrix action"
+                    )
+                pixels = [Pixel.from_list(rgb) for rgb in pixel_matrix]
+                await self.led_controller.set_all_pixels(pixels)
+                return {
+                    "status": "completed",
+                    "message": f"Set all {len(pixel_matrix)} pixels from matrix",
+                }
 
-            # Turn off all pixels at the end
-            for i in range(self.num_pixels):
-                self.pixels.set_pixel(i, 0, 0, 0)
-            self.pixels.update_strip()
+            elif action == "clear":
+                await self.led_controller.clear()
+                return {"status": "completed", "message": "Cleared all pixels"}
 
-            self.logger.info(f"Successfully cycled through {len(colors)} colors")
-            return {
-                "status": "completed",
-                "message": f"Cycled through {len(colors)} colors on {self.num_pixels} pixels",
-            }
+            elif action == "cycle":
+                return await self.led_controller.cycle_colors()
+
+            else:
+                raise NotImplementedError(f"Action '{action}' is not implemented")
 
         except Exception as e:
-            self.logger.error(f"Error cycling lights: {e}")
+            self.logger.error(f"Error executing command: {e}")
             return {"status": "error", "message": str(e)}
 
     async def get_geometries(
-        self, *, extra: Optional[Dict[str, Any]] = None, timeout: Optional[float] = None
+        self, *, extra: Optional[Dict[str, Any]] = None, timeout: float | None = None
     ) -> Sequence[Geometry]:
         self.logger.error("`get_geometries` is not implemented")
         raise NotImplementedError()
