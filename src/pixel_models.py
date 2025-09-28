@@ -37,7 +37,9 @@ class PixelStrip(BaseModel):
 
     @classmethod
     def from_lists(
-        cls, pixel_lists: list[list[int]], start_index: int = 0
+        cls,
+        pixel_lists: list[list[int]],
+        start_index: int = 0,
     ) -> "PixelStrip":
         """Create PixelStrip from list of [r, g, b] lists"""
         pixels = [Pixel.from_list(rgb_list) for rgb_list in pixel_lists]
