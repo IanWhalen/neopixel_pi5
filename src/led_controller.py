@@ -23,32 +23,32 @@ class LEDController:
         """Set a specific pixel to RGB color"""
         rgb = pixel.to_tuple()
         self.pixels.set_led_color(pixel_index, rgb[0], rgb[1], rgb[2])
-        self.pixels.update_strip()
+        self.pixels.update_strip(sleep_duration=None)
 
     async def set_all(self, pixel: Pixel) -> None:
         """Set all pixels to the same RGB color using efficient fill_strip"""
         rgb = pixel.to_tuple()
         self.pixels.fill_strip(rgb[0], rgb[1], rgb[2])
-        self.pixels.update_strip()
+        self.pixels.update_strip(sleep_duration=None)
 
     async def set_pixels(self, pixel_strip: PixelStrip) -> None:
         """Set multiple pixels from a PixelStrip"""
         rgb_tuples = pixel_strip.to_tuples()
         for i, (red, green, blue) in enumerate(rgb_tuples):
             self.pixels.set_led_color(pixel_strip.start_index + i, red, green, blue)
-        self.pixels.update_strip()
+        self.pixels.update_strip(sleep_duration=None)
 
     async def set_all_pixels(self, pixels: list[Pixel]) -> None:
         """Set all pixels from a list of Pixel models"""
         for i, pixel in enumerate(pixels):
             red, green, blue = pixel.to_tuple()
             self.pixels.set_led_color(i, red, green, blue)
-        self.pixels.update_strip()
+        self.pixels.update_strip(sleep_duration=None)
 
     async def clear(self) -> None:
         """Turn off all pixels using efficient clear_strip"""
         self.pixels.clear_strip()
-        self.pixels.update_strip()
+        self.pixels.update_strip(sleep_duration=None)
 
     async def cycle_colors(self) -> dict[str, str]:
         """Cycle through all lights with different colors"""
@@ -72,7 +72,7 @@ class LEDController:
                     self.pixels.set_led_color(i, color[0], color[1], color[2])
 
                 # Update the strip
-                self.pixels.update_strip()
+                self.pixels.update_strip(sleep_duration=None)
 
                 # Wait before next color
                 import asyncio
@@ -82,7 +82,7 @@ class LEDController:
             # Turn off all pixels at the end
             for i in range(self.num_pixels):
                 self.pixels.set_led_color(i, 0, 0, 0)
-            self.pixels.update_strip()
+            self.pixels.update_strip(sleep_duration=None)
 
             return {
                 "status": "completed",
